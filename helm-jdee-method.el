@@ -1,26 +1,40 @@
-;;; helm-jdee-method.el --- JDEE method helm interface
-
-;; Copyright (C) 2012 by Mikio
-
-;; Author: Mikio https://twitter.com/mikio_kun
+;;; helm-jdee-method.el --- JDEE method complation for helm.
+;; Filename: helm-jdee-method.el
+;; Description: JDEE method complation for helm.
 ;; URL: https://github.com/mikio/emacs-helm-jdee-method
-;; Version: 0.1
-;; Package-Requires: ((helm "1.0"))
+;; Author: mikio_kun https://twitter.com/mikio_kun
+;; Maintainer: mikio_kun
+;; Copyright (C) :2012 mikio_kun all rights reserved.
+;; Created: :2012-12-22
+;; Version: 0.1.0
+;; Package-Requires: ()
+;; Package-Requires: ((helm "20120811")(yasnippet "20120822"))
+;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; This file is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs; see the file COPYING. If not, write to
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 0:110-1301, USA.
 
 ;;; Commentary:
+
+;; Installation:
+;; Put the helm-jdee-method.el to your load-path.
+;; And add to .emacs:
+;;  (require 'helm-jdee-method) 
+;;  (define-key jde-mode-map (kbd "C-c C-v C-i") 'helm-jdee-method)
+
+;;; Changelog:
 
 
 ;;; Code:
@@ -28,17 +42,6 @@
 (require 'jde)
 
 (defvar helm-jdee-method-args-separator ", ")
-
-(defun hjm-debug ()
-  (interactive)
-  (message "%s" (hjm-get-methods))
-  )
-
-(defun hjm-get-methods ()
-  (let* ((pair (hjm-get-pair-))
-         (type (jde-parse-eval-type-of (car pair)))
-         (methods (hjm-get-methods- type pair)))
-    methods))
 
 (defun hjm-get-pair- ()
   (let* ((pair (jde-parse-java-variable-at-point)))
@@ -53,14 +56,14 @@
     pair))
 
 (defun hjm-get-methods- (type pair)
-  (let ((access (jde-complete-get-access pair)) ; this. なのか super. なのかでアクセスレベルを取得する(定数)
+  (let ((access (jde-complete-get-access pair)) ; get Constant access level ("this." or "super.")
         (obj (car pair))
         completion-list)
     (progn
       (if access
           (setq completion-list
-                (hjm-get-methods2- type access)) ; private, protecteのとき
-        (setq completion-list (hjm-get-methods2- type))) ; publicレベルのとき
+                (hjm-get-methods2- type access)) ; When, private or protect level
+        (setq completion-list (hjm-get-methods2- type))) ; When public leve
 
       ;;if the completion list is nil check if the method is in the current
       ;;class(this)
@@ -97,6 +100,16 @@
             )
     nil))
 
+(defun hjm-debug ()
+  (interactive)
+  (message "%s" (hjm-get-methods))
+  )
+
+(defun hjm-get-methods ()
+  (let* ((pair (hjm-get-pair-))
+         (type (jde-parse-eval-type-of (car pair)))
+         (methods (hjm-get-methods- type pair)))
+    methods))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; http://d.hatena.ne.jp/tuto0621/20090217/1234888531
@@ -146,7 +159,7 @@
   (mapconcat 'identity l sep))
 
 (defun hjm-method-action (s)
-  "yasnippet用のテンプレートを動的に作成する。"
+  "Create dynamic templete for yasnippet."
   (let* ((l (hjm-method-list s))
          (name (hjm-method-name l))
          (args (hjm-method-args l))
